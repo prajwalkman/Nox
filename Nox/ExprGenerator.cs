@@ -1,5 +1,4 @@
-﻿﻿
-using System;
+﻿﻿using System;
 
 namespace Nox {
 	public abstract class Expr {
@@ -68,3 +67,4 @@ namespace Nox {
 
 	}
 }
+

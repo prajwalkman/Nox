@@ -7,13 +7,16 @@ using Nox.Frontend;
 namespace Nox {
 	public static class Nox {
 		private static bool hadError = false;
+		private static bool replExitRequested = false;
 
 		private static void Run(string Source) {
 			Scanner scanner = new Scanner(Source);
 			List<Token> tokens = scanner.ScanTokens();
+			Parser parser = new Parser(tokens);
+			Expr expression = parser.Parse();
 
-			foreach (Token token in tokens) {
-				Console.WriteLine(token);
+			if (!hadError) {
+				Console.WriteLine(new Debug.AstPrinter().Print(expression));
 			}
 		}
 
@@ -28,19 +31,28 @@ namespace Nox {
 		}
 
 		public static void RunPrompt() {
-			for (;;) {
+			while (!replExitRequested) {
+				hadError = false;
 				Console.Write("> ");
 				Run(Console.ReadLine());
 			}
-			throw new NotSupportedException();
 		}
 
 		public static void Error(int Line, string Message) {
 			Report(Line, "", Message);
 		}
 
+		public static void Error(Token token, string msg) {
+			if (token.type == TokenType.EOF) {
+				Report(token.line, "at end", msg);
+			} else {
+				Report(token.line, string.Format("at '{0}'", token.lexeme), msg);
+			}
+		}
+
 		private static void Report(int Line, string Where, string Message) {
 			string msg = string.Format("[line {0}] Error {1}: {2}", Line, Where, Message);
+			Console.WriteLine(msg);
 			hadError = true;
 		}
 

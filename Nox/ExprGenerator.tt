@@ -3,7 +3,6 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-
 <#
 string BaseName = "Expr";
 List<string> ExprGrammar = new List<string>() {
@@ -12,7 +11,6 @@ List<string> ExprGrammar = new List<string>() {
 	"Literal  : Object value",
 	"Unary    : Token op, Expr right",
 };
-
 #>
 using System;
 
@@ -22,15 +20,15 @@ namespace Nox {
 
 		public interface IVisitor<R> {
 		<# foreach (string type in ExprGrammar) { 
-			string className = type.Split(":".ToCharArray())[0].Trim();	#>
+			string className = Split(type, ":")[0].Trim(); #>
 		R Visit<#= className #><#= BaseName #>(<#= className #> <#= BaseName.ToLower() #>);
 		<# } #>}
 
 <#
 foreach (string type in ExprGrammar) {
-	string className = type.Split(":".ToCharArray())[0].Trim();
-	string fieldList = type.Split(":".ToCharArray())[1].Trim();
-	string[] fields = fieldList.Split(new string[] { ", " }, StringSplitOptions.RemoveEmptyEntries);
+	string className = Split(type, ":")[0].Trim();
+	string fieldList = Split(type, ":")[1].Trim();
+	string[] fields = Split(fieldList, ", ");
 #>
 		public class <#= className #> : <#= BaseName #> {
 			<#
@@ -43,7 +41,7 @@ foreach (string type in ExprGrammar) {
 			public <#= className #>(<#= fieldList #>) {
 			<#
 			foreach (string field in fields) {
-				string name = field.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1];
+				string name = Split(field, " ")[1];
 			#>	this.<#= name #> = <#= name #>;
 			<#
 			}
@@ -60,3 +58,9 @@ foreach (string type in ExprGrammar) {
 #>
 	}
 }
+
+<#+
+public static string[] Split(string s, string separator) {
+	return s.Split(new string[] { separator }, StringSplitOptions.RemoveEmptyEntries);
+}
+#>

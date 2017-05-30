@@ -92,9 +92,9 @@ namespace Nox.Frontend {
 						ScanNumber();
 					} else if (IsAlpha(c)) {
 						ScanIdentifier();
+					} else {
+						Nox.Error(line, "unexpected character");
 					}
-
-					Nox.Error(line, "unexpected character");
 					break;
 			}
 		}

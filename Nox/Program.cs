@@ -8,11 +8,13 @@ namespace Nox {
 			if (args.Length > 1) {
 				Console.WriteLine("Usage: nox [script]");
 				return 1;
-			} else if (args.Length == 1) {
-				return Nox.RunFile(args[0]);
-			} else {
-				Nox.RunPrompt();
 			}
+
+			if (args.Length == 1) {
+				return Nox.RunFile(args[0]);
+			}
+
+			Nox.RunPrompt();
 
 			return 0;
 		}
