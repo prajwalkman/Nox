@@ -1,0 +1,62 @@
+﻿﻿<#@ template language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+
+<#
+string BaseName = "Expr";
+List<string> ExprGrammar = new List<string>() {
+	"Binary   : Expr left, Token op, Expr right",
+	"Grouping : Expr expression",
+	"Literal  : Object value",
+	"Unary    : Token op, Expr right",
+};
+
+#>
+using System;
+
+namespace Nox {
+	public abstract class Expr {
+		public abstract R Accept<R>(IVisitor<R> visitor);
+
+		public interface IVisitor<R> {
+		<# foreach (string type in ExprGrammar) { 
+			string className = type.Split(":".ToCharArray())[0].Trim();	#>
+		R Visit<#= className #><#= BaseName #>(<#= className #> <#= BaseName.ToLower() #>);
+		<# } #>}
+
+<#
+foreach (string type in ExprGrammar) {
+	string className = type.Split(":".ToCharArray())[0].Trim();
+	string fieldList = type.Split(":".ToCharArray())[1].Trim();
+	string[] fields = fieldList.Split(new string[] { ", " }, StringSplitOptions.RemoveEmptyEntries);
+#>
+		public class <#= className #> : <#= BaseName #> {
+			<#
+			foreach (string field in fields) {
+			#>public readonly <#= field #>;
+			<#
+			}
+			#>
+			
+			public <#= className #>(<#= fieldList #>) {
+			<#
+			foreach (string field in fields) {
+				string name = field.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1];
+			#>	this.<#= name #> = <#= name #>;
+			<#
+			}
+			#>}
+
+			public override R Accept<R>(IVisitor<R> visitor) {
+				return visitor.Visit<#= className #><#= BaseName #>(this);
+			}
+		}
+
+<#
+}
+
+#>
+	}
+}
