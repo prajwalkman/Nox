@@ -10,14 +10,14 @@
     <Folder Include="Debug\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ExprGenerator.tt">
+    <None Update="Expr.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>ExprGenerator.cs</LastGenOutput>
+      <LastGenOutput>Expr.cs</LastGenOutput>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Compile Condition=" '$(EnableDefaultCompileItems)' == 'true' " Update="ExprGenerator.cs">
-      <DependentUpon>ExprGenerator.tt</DependentUpon>
+    <Compile Condition=" '$(EnableDefaultCompileItems)' == 'true' " Update="Expr.cs">
+      <DependentUpon>Expr.tt</DependentUpon>
     </Compile>
   </ItemGroup>
 </Project>
