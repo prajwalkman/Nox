@@ -24,12 +24,18 @@ namespace Nox {
 					if (left is string && right is string) {
 						return (string)left + (string)right;
 					}
-					throw new Exception("Invalid addition operands");
+					if (left is string && right is double) {
+						return (string)left + right;
+					}
+					throw new RuntimeError(expr.op, "Invalid addition operands");
 				case TokenType.MINUS:
 					CheckNumberedOperands(expr.op, left, right);
 					return (double)left - (double)right;
 				case TokenType.SLASH:
 					CheckNumberedOperands(expr.op, left, right);
+#pragma warning disable RECS0018 // Comparison of floating point numbers with equality operator
+					if ((double)right == 0.0) throw new RuntimeError(expr.op, "RHS Operand cannot be zero");
+#pragma warning restore RECS0018 // Comparison of floating point numbers with equality operator
 					return (double)left / (double)right;
 				case TokenType.STAR:
 					CheckNumberedOperands(expr.op, left, right);

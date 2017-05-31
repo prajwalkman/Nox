@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.IO;
 using System.Collections.Generic;
 
@@ -51,7 +51,7 @@ namespace Nox {
 		}
 
 		public static void RuntimeError(Interpreter.RuntimeError error) {
-			string msg = string.Format("{0}\n[line {1}]", error, error.token.line);
+			string msg = string.Format("{0}\n[line {1}|{2}]", error, error.token.line, error.token.column);
 			Console.WriteLine(msg);
 			hadRuntimeError = true;
 		}

@@ -141,7 +141,10 @@ namespace Nox.Frontend {
 				return;
 			}
 
-			string literal = source.Substring(start + 1, current - start - 1);
+			// closing '"'
+			Advance();
+
+			string literal = source.Substring(start + 1, current - start - 2);
 			AddToken(TokenType.STRING, literal);
 		}
 
