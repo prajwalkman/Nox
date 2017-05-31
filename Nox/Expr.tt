@@ -23,8 +23,8 @@ namespace Nox {
 
 		public interface IVisitor<R> {
 		<# foreach (string type in ExprGrammar) { 
-			string className = Split(type, ":")[0].Trim(); #>
-		R Visit<#= className #><#= BaseName #>(<#= className #> <#= BaseName.ToLower() #>);
+			string className = Split(type, ":")[0].Trim(); 
+		#>	R Visit<#= className #><#= BaseName #>(<#= className #> <#= BaseName.ToLower() #>);
 		<# } #>}
 
 <#

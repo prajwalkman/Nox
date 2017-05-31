@@ -152,6 +152,7 @@ namespace Nox.Frontend {
 
 		public class ParserException : Exception {}
 
+		// Unused until Statements are implemented
 		private void Synchronize() {
 			Advance();
 

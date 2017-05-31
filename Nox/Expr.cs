@@ -8,10 +8,10 @@ namespace Nox {
 		public abstract R Accept<R>(IVisitor<R> visitor);
 
 		public interface IVisitor<R> {
-				R VisitBinaryExpr(Binary expr);
-				R VisitGroupingExpr(Grouping expr);
-				R VisitLiteralExpr(Literal expr);
-				R VisitUnaryExpr(Unary expr);
+			R VisitBinaryExpr(Binary expr);
+			R VisitGroupingExpr(Grouping expr);
+			R VisitLiteralExpr(Literal expr);
+			R VisitUnaryExpr(Unary expr);
 		}
 
 		public class Binary : Expr {

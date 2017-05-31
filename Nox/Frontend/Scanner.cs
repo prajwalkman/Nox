@@ -9,24 +9,25 @@ namespace Nox.Frontend {
 		private int start = 0;
 		private int current = 0;
 		private int line = 1;
+		private int column = 0;
 
 		private static readonly Dictionary<string, TokenType> keywords = new Dictionary<string, TokenType>() {
-			{"and",    TokenType.AND},
-			{"class",  TokenType.CLASS},
-			{"else",   TokenType.ELSE},
-			{"false",  TokenType.FALSE},
-			{"for",    TokenType.FOR},
-			{"fun",    TokenType.FUN},
-			{"if",     TokenType.IF},
-			{"nil",    TokenType.NIL},
-			{"or",     TokenType.OR},
-			{"print",  TokenType.PRINT},
-			{"return", TokenType.RETURN},
-			{"super",  TokenType.SUPER},
-			{"this",   TokenType.THIS},
-			{"true",   TokenType.TRUE},
-			{"var",    TokenType.VAR},
-			{"while",  TokenType.WHILE},		
+			{ "and",    TokenType.AND },
+			{ "class",  TokenType.CLASS },
+			{ "else",   TokenType.ELSE },
+			{ "false",  TokenType.FALSE },
+			{ "for",    TokenType.FOR },
+			{ "fun",    TokenType.FUN },
+			{ "if",     TokenType.IF },
+			{ "nil",    TokenType.NIL },
+			{ "or",     TokenType.OR },
+			{ "print",  TokenType.PRINT },
+			{ "return", TokenType.RETURN },
+			{ "super",  TokenType.SUPER },
+			{ "this",   TokenType.THIS },
+			{ "true",   TokenType.TRUE },
+			{ "var",    TokenType.VAR },
+			{ "while",  TokenType.WHILE },
 		};
 
 		public Scanner(string Source) {
@@ -39,7 +40,7 @@ namespace Nox.Frontend {
 				ScanToken();
 			}
 
-			tokens.Add(new Token(TokenType.EOF, "", null, line));
+			tokens.Add(new Token(TokenType.EOF, "", null, line, column));
 
 			return tokens;
 		}
@@ -83,6 +84,7 @@ namespace Nox.Frontend {
 
 				case '\n':
 					line++;
+					column = 0;
 					break;
 
 				case '"': ScanString(); break;
@@ -93,7 +95,7 @@ namespace Nox.Frontend {
 					} else if (IsAlpha(c)) {
 						ScanIdentifier();
 					} else {
-						Nox.Error(line, "unexpected character");
+						Nox.Error(line, column, "unexpected character");
 					}
 					break;
 			}
@@ -135,7 +137,7 @@ namespace Nox.Frontend {
 			}
 
 			if (IsEOF()) {
-				Nox.Error(line, "Unterminated string");
+				Nox.Error(line, column, "Unterminated string");
 				return;
 			}
 
@@ -163,6 +165,7 @@ namespace Nox.Frontend {
 
 		private char Advance() {
 			current++;
+			column++;
 			return source[current - 1];
 		}
 
@@ -172,7 +175,7 @@ namespace Nox.Frontend {
 
 		private void AddToken(TokenType type, object literal) {
 			string text = source.Substring(start, current - start);
-			tokens.Add(new Token(type, text, literal, line));
+			tokens.Add(new Token(type, text, literal, line, column));
 		}
 
 		private bool IsEOF() {
