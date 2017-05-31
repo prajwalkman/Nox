@@ -12,8 +12,8 @@ namespace Nox {
 
 		private static Interpreter interpreter = new Interpreter();
 
-		private static void Run(string Source) {
-			Scanner scanner = new Scanner(Source);
+		private static void Run(string source) {
+			Scanner scanner = new Scanner(source);
 			List<Token> tokens = scanner.ScanTokens();
 			Parser parser = new Parser(tokens);
 			Expr expression = parser.Parse();
@@ -24,8 +24,8 @@ namespace Nox {
 			}
 		}
 
-		public static int RunFile(string Path) {
-			string code = File.ReadAllText(Path);
+		public static int RunFile(string path) {
+			string code = File.ReadAllText(path);
 			Run(code);
 
 			if (hadError) {
@@ -56,8 +56,8 @@ namespace Nox {
 			hadRuntimeError = true;
 		}
 
-		public static void Error(int Line, int Column, string Message) {
-			Report(Line, Column, "", Message);
+		public static void Error(int line, int column, string msg) {
+			Report(line, column, "", msg);
 		}
 
 		public static void Error(Token token, string msg) {
@@ -68,9 +68,9 @@ namespace Nox {
 			}
 		}
 
-		private static void Report(int Line, int Column, string Where, string Message) {
-			string msg = string.Format("[line {0}|{1}] Error {2}: {3}", Line, Column, Where, Message);
-			Console.WriteLine(msg);
+		private static void Report(int line, int column, string context, string msg) {
+			string report = string.Format("[line {0}|{1}] Error {2}: {3}", line, column, context, msg);
+			Console.WriteLine(report);
 			hadError = true;
 		}
 
