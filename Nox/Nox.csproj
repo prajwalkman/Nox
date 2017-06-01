@@ -10,6 +10,12 @@
     <Folder Include="Debug\" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Stmt.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Stmt.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
     <None Update="Expr.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>Expr.cs</LastGenOutput>
@@ -18,6 +24,9 @@
   <ItemGroup>
     <Compile Condition=" '$(EnableDefaultCompileItems)' == 'true' " Update="Expr.cs">
       <DependentUpon>Expr.tt</DependentUpon>
+    </Compile>
+    <Compile Condition=" '$(EnableDefaultCompileItems)' == 'true' " Update="Stmt.cs">
+      <DependentUpon>Stmt.tt</DependentUpon>
     </Compile>
   </ItemGroup>
 </Project>

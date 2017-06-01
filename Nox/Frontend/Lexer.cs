@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 
 namespace Nox.Frontend {
-	public class Scanner {
-		private string source;
+	public class Lexer {
+		private readonly string source;
 		private List<Token> tokens = new List<Token>();
 
 		private int start = 0;
@@ -30,7 +30,7 @@ namespace Nox.Frontend {
 			{ "while",  TokenType.WHILE },
 		};
 
-		public Scanner(string Source) {
+		public Lexer(string Source) {
 			source = Source;
 		}
 

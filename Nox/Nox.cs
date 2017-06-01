@@ -13,8 +13,8 @@ namespace Nox {
 		private static Interpreter interpreter = new Interpreter();
 
 		private static void Run(string source) {
-			Scanner scanner = new Scanner(source);
-			List<Token> tokens = scanner.ScanTokens();
+			Lexer lexer = new Lexer(source);
+			List<Token> tokens = lexer.ScanTokens();
 			Parser parser = new Parser(tokens);
 			Expr expression = parser.Parse();
 
