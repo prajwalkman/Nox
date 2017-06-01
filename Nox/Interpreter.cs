@@ -12,6 +12,10 @@ namespace Nox {
 			}
 		}
 
+		public object VisitAssignExpr(Expr.Assign expr) {
+			throw new NotImplementedException();
+		}
+
 		public object VisitBinaryExpr(Expr.Binary expr) {
 			object left = Evaluate(expr.left);
 			object right = Evaluate(expr.right);
@@ -63,12 +67,32 @@ namespace Nox {
 			return null;
 		}
 
+		public object VisitCallExpr(Expr.Call expr) {
+			throw new NotImplementedException();
+		}
+
+		public object VisitGetExpr(Expr.Get expr) {
+			throw new NotImplementedException();
+		}
+
 		public object VisitGroupingExpr(Expr.Grouping expr) {
 			return Evaluate(expr.expression);
 		}
 
 		public object VisitLiteralExpr(Expr.Literal expr) {
 			return expr.value;
+		}
+
+		public object VisitLogicalExpr(Expr.Logical expr) {
+			throw new NotImplementedException();
+		}
+
+		public object VisitSetExpr(Expr.Set expr) {
+			throw new NotImplementedException();
+		}
+
+		public object VisitThisExpr(Expr.This expr) {
+			throw new NotImplementedException();
 		}
 
 		public object VisitUnaryExpr(Expr.Unary expr) {
@@ -83,6 +107,10 @@ namespace Nox {
 			}
 
 			return null;
+		}
+
+		public object VisitVariableExpr(Expr.Variable expr) {
+			throw new NotImplementedException();
 		}
 
 		private object Evaluate(Expr expression) {

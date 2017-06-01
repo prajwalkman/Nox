@@ -10,7 +10,7 @@
     <Folder Include="Debug\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Stmt.tt">
+    <None Update="Stmt.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>Stmt.cs</LastGenOutput>
     </None>
