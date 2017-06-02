@@ -10,17 +10,24 @@ namespace Nox {
 		private static bool hadRuntimeError = false;
 		private static bool replExitRequested = false;
 
+		private static bool astPrinterMode = false;
+
 		private static Interpreter interpreter = new Interpreter();
 
 		private static void Run(string source) {
 			Lexer lexer = new Lexer(source);
 			List<Token> tokens = lexer.ScanTokens();
 			Parser parser = new Parser(tokens);
-			Expr expression = parser.Parse();
+			List<Stmt> statements = parser.Parse();
 
 			if (!hadError) {
-				//Console.WriteLine(new Debug.AstPrinter().Print(expression));
-				interpreter.Interpret(expression);
+				foreach (Stmt statement in statements) {
+					if (astPrinterMode) {
+						Console.WriteLine(new Debug.AstPrinter().Print(statement));
+					} else {
+						interpreter.Interpret(statement);
+					}
+				}
 			}
 		}
 

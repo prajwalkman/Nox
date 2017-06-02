@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 namespace Nox {
-	public class Interpreter : Expr.IVisitor<object> {
+	public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object> {
 
 		public void Interpret(Expr expression) {
 			try {
@@ -11,6 +11,58 @@ namespace Nox {
 				Nox.RuntimeError(e);
 			}
 		}
+
+		public void Interpret(Stmt statement) {
+			try {
+				statement.Accept(this);
+			} catch (RuntimeError e) {
+				Nox.RuntimeError(e);
+			}
+		}
+
+		#region StmtVisitors
+
+		public object VisitBlockStmt(Stmt.Block stmt) {
+			return null;
+		}
+
+		public object VisitClassStmt(Stmt.Class stmt) {
+			return null;
+		}
+
+		public object VisitExpressionStmt(Stmt.Expression stmt) {
+			return null;
+		}
+
+		public object VisitFunctionStmt(Stmt.Function stmt) {
+			return null;
+		}
+
+		public object VisitIfStmt(Stmt.If stmt) {
+			return null;
+		}
+
+		public object VisitPrintStmt(Stmt.Print stmt) {
+			Console.WriteLine(Evaluate(stmt.expression));
+			return null;
+		}
+
+		public object VisitReturnStmt(Stmt.Return stmt) {
+			return null;
+		}
+
+		public object VisitVarStmt(Stmt.Var stmt) {
+			return null;
+		}
+
+		public object VisitWhileStmt(Stmt.While stmt) {
+			return null;
+		}
+
+
+		#endregion StmtVisitors
+
+		#region ExprVisitors
 
 		public object VisitAssignExpr(Expr.Assign expr) {
 			throw new NotImplementedException();
@@ -112,6 +164,8 @@ namespace Nox {
 		public object VisitVariableExpr(Expr.Variable expr) {
 			throw new NotImplementedException();
 		}
+
+		#endregion ExprVisitors
 
 		private object Evaluate(Expr expression) {
 			return expression.Accept(this);

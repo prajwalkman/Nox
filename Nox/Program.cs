@@ -1,8 +1,13 @@
 ﻿using System;
+using System.IO;
 
 namespace Nox {
 	class Program {
 		static int Main (string[] args) {
+
+			const string test_ast_file = "Test/test1.nox";
+			return Nox.RunFile(test_ast_file);
+
 			Console.WriteLine("Nox interpreter");
 
 			if (args.Length > 1) {

@@ -10,13 +10,21 @@ namespace Nox.Frontend {
 			this.tokens = tokens;
 		}
 
-		public Expr Parse() {
-			try {
-				return Expression();
-			} catch (ParserException) {
-				return null;
+		public List<Stmt> Parse() {
+			List<Stmt> statements = new List<Stmt>();
+
+			while (!IsEOF()) {
+				try {
+					Stmt newStmt = Statement();
+					statements.Add(newStmt);
+				} catch (ParserException) {
+					return null;
+				}
 			}
+			return statements;
 		}
+
+		#region utils
 
 		private Token Peek() {
 			return tokens[current];
@@ -48,6 +56,34 @@ namespace Nox.Frontend {
 				}
 			}
 			return false;
+		}
+
+		#endregion utils
+
+		// program    → statement* EOF
+		// statement  → expr_stmt | print_stmt
+		// print_stmt → "print" expression ";"		//! Note - this is a terminal, 
+													//! so cannot be represented 
+													//! as `"print" expr_stmt`
+		// expr_stmt  → expression ";"
+
+		private Stmt Statement() {
+			if (Match(TokenType.PRINT)) {
+				return PrintStmt();
+			}
+			return ExprStmt();
+		}
+
+		private Stmt PrintStmt() {
+			Expr expression = Expression();
+			Consume(TokenType.SEMICOLON, "Expect ';' after statement");
+			return new Stmt.Print(expression);
+		}
+
+		private Stmt ExprStmt() {
+			Expr expression = Expression();
+			Consume(TokenType.SEMICOLON, "Expect ';' after statement");
+			return new Stmt.Expression(expression);
 		}
 
 		// expression → equality
@@ -134,6 +170,7 @@ namespace Nox.Frontend {
 			if (Match(TokenType.LEFT_PAREN)) {
 				Expr expr = Expression();
 				Consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
+				return new Expr.Grouping(expr);
 			}
 
 			throw Error(Peek(), "Expect expression.");

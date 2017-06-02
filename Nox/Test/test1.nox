@@ -1,0 +1,7 @@
+﻿// Nox test file
+
+print "come at me";
+4 + 9;
+print 3 == -3;
+print 3 == 3;
+print 4 + (3 - 5 / 2);

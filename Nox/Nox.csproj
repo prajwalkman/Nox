@@ -8,6 +8,7 @@
   <ItemGroup>
     <Folder Include="Frontend\" />
     <Folder Include="Debug\" />
+    <Folder Include="Test\" />
   </ItemGroup>
   <ItemGroup>
     <None Update="Stmt.tt">
