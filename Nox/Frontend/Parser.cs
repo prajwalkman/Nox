@@ -15,7 +15,7 @@ namespace Nox.Frontend {
 
 			while (!IsEOF()) {
 				try {
-					Stmt newStmt = Statement();
+					Stmt newStmt = Declaration();
 					statements.Add(newStmt);
 				} catch (ParserException) {
 					return null;
@@ -60,18 +60,39 @@ namespace Nox.Frontend {
 
 		#endregion utils
 
-		// program    → statement* EOF
-		// statement  → expr_stmt | print_stmt
-		// print_stmt → "print" expression ";"		//! Note - this is a terminal, 
-													//! so cannot be represented 
-													//! as `"print" expr_stmt`
-		// expr_stmt  → expression ";"
+		// program     → declaration* EOF
+		// declaration → var_decl | statement
+		// statement   → expr_stmt | print_stmt | block
+		// block       → "{" declaration* "}"
+		// print_stmt  → "print" expression ";"		
+		// expr_stmt   → expression ";"
+		// var_decl    → "var" IDENT ( "=" expression )? ";"
+
+		private Stmt Declaration() {
+			if (Match(TokenType.VAR)) {
+				return VarDecl();
+			}
+			return Statement();
+		}
 
 		private Stmt Statement() {
 			if (Match(TokenType.PRINT)) {
 				return PrintStmt();
 			}
+			if (Match(TokenType.LEFT_BRACE)) {
+				return BlockStmt();
+			}
 			return ExprStmt();
+		}
+
+		private Stmt BlockStmt() {
+			List<Stmt> statements = new List<Stmt>();
+			while (!IsEOF() && !Check(TokenType.RIGHT_BRACE)) {
+				Stmt statement = Declaration();
+				statements.Add(statement);
+			}
+			Consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");
+			return new Stmt.Block(statements);
 		}
 
 		private Stmt PrintStmt() {
@@ -86,7 +107,18 @@ namespace Nox.Frontend {
 			return new Stmt.Expression(expression);
 		}
 
-		// expression → equality
+		private Stmt VarDecl() {
+			Token ident = Consume(TokenType.IDENTIFIER, "Expect identifier");
+			Expr initializer = null;
+			if (Match(TokenType.EQUAL)) {
+				initializer = Expression();
+			}
+			Consume(TokenType.SEMICOLON, "Expect semicolon");
+			return new Stmt.Var(ident, initializer);
+		}
+
+		// expression → assignment
+		// assignment → IDENT ( "=" assignment )? | equality
 		// equality   → comparison ( ( "!=" | "==" ) comparison )*
 		// comparison → term ( ( ">" | ">=" | "<" | "<=" ) term )*
 		// term       → factor ( ( "-" | "+" ) factor )*
@@ -94,10 +126,29 @@ namespace Nox.Frontend {
 		// unary      → ( "!" | "-" ) unary
 		//            | primary
 		// primary    → NUMBER | STRING | "false" | "true" | "nil"
-		//            | "(" expression ")"
+		//            | "(" expression ")" | IDENT
+
 
 		private Expr Expression() {
-			return Equality();
+			return Assignment();
+		}
+
+		private Expr Assignment() {
+			Expr lvalue = Equality();
+
+			if (Match(TokenType.EQUAL)) {
+				Token eq = Previous();
+				Expr rvalue = Assignment();
+
+				if (lvalue is Expr.Variable) {
+					Token name = ((Expr.Variable)lvalue).name;
+					return new Expr.Assign(name, rvalue);
+				}
+
+				Error(eq, "Invalid assignment target.");
+			}
+
+			return lvalue;
 		}
 
 		private Expr Equality() {
@@ -172,6 +223,9 @@ namespace Nox.Frontend {
 				Consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
 				return new Expr.Grouping(expr);
 			}
+
+			if (Match(TokenType.IDENTIFIER)) return new Expr.Variable(Previous());
+
 
 			throw Error(Peek(), "Expect expression.");
 		}

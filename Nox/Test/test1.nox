@@ -5,3 +5,20 @@ print "come at me";
 print 3 == -3;
 print 3 == 3;
 print 4 + (3 - 5 / 2);
+var a = 7;
+print "a=" + a;
+var b = a + 9;
+print "b=" + b;
+var c;
+{
+	var d = 5;
+	print "d=" + d;
+	print c = 3;
+}
+var d;
+{
+	print "c=" + c;
+	print d = 3;
+	print "d=" + 3;
+}
+print d + c;

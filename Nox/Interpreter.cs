@@ -3,6 +3,8 @@ using System.Linq;
 namespace Nox {
 	public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object> {
 
+		private Environment currentEnv = new Environment();
+
 		public void Interpret(Expr expression) {
 			try {
 				object result = Evaluate(expression);
@@ -23,6 +25,12 @@ namespace Nox {
 		#region StmtVisitors
 
 		public object VisitBlockStmt(Stmt.Block stmt) {
+			Environment prevEnv = currentEnv;
+			currentEnv = new Environment(currentEnv);
+			foreach (Stmt statement in stmt.statements) {
+				statement.Accept(this);
+			}
+			currentEnv = prevEnv;
 			return null;
 		}
 
@@ -31,6 +39,7 @@ namespace Nox {
 		}
 
 		public object VisitExpressionStmt(Stmt.Expression stmt) {
+			Evaluate(stmt.expression);
 			return null;
 		}
 
@@ -52,6 +61,17 @@ namespace Nox {
 		}
 
 		public object VisitVarStmt(Stmt.Var stmt) {
+			if (currentEnv.IsDeclared(stmt.name)) {
+				throw new RuntimeError(
+					stmt.name,
+					string.Format("var '{0}' shadows existing var.", stmt.name.lexeme));
+			}
+
+			object val = null;
+			if (stmt.initializer != null) {
+				val = Evaluate(stmt.initializer);
+			}
+			currentEnv.Define(stmt.name, val);
 			return null;
 		}
 
@@ -65,7 +85,9 @@ namespace Nox {
 		#region ExprVisitors
 
 		public object VisitAssignExpr(Expr.Assign expr) {
-			throw new NotImplementedException();
+			object val = Evaluate(expr.value);
+			currentEnv.Assign(expr.name, val);
+			return val;
 		}
 
 		public object VisitBinaryExpr(Expr.Binary expr) {
@@ -162,7 +184,13 @@ namespace Nox {
 		}
 
 		public object VisitVariableExpr(Expr.Variable expr) {
-			throw new NotImplementedException();
+			object val = currentEnv.Get(expr.name);
+			if (val == null) {
+				throw new RuntimeError(
+					expr.name, 
+					string.Format("var '{0}' was declared but not defined.", expr.name.lexeme));
+			}
+			return currentEnv.Get(expr.name);
 		}
 
 		#endregion ExprVisitors
@@ -201,7 +229,7 @@ namespace Nox {
 
 			if (obj is double) {
 				string text = obj.ToString();
-				if (text.EndsWith(".0")) {
+				if (text.EndsWith(".0", StringComparison.OrdinalIgnoreCase)) {
 					text = text.Substring(0, text.Length - 2);
 				}
 				return text;

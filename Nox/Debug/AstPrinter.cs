@@ -56,7 +56,13 @@ namespace Nox.Debug {
 		#region StmtVisitors
 
 		public string VisitBlockStmt(Stmt.Block stmt) {
-			throw new NotImplementedException();
+			StringBuilder builder = new StringBuilder();
+			builder.Append("(block ");
+			foreach (Stmt statement in stmt.statements) {
+				builder.Append(statement.Accept(this));
+			}
+			builder.Append(" )");
+			return builder.ToString();
 		}
 
 		public string VisitClassStmt(Stmt.Class stmt) {
