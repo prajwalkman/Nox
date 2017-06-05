@@ -1,9 +1,18 @@
 ﻿using System;
 using System.Linq;
 namespace Nox {
-	public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object> {
+	public struct VoidT {
+		public override string ToString() {
+			throw new Interpreter.RuntimeError(
+				new Token(),
+				string.Format("Stmt visitor returns should not be used."));
+		}
+	} // Workaound for IVisitor<void>
+
+	public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<VoidT> {
 
 		private Environment currentEnv = new Environment();
+		public static readonly VoidT VoidT;
 
 		public void Interpret(Expr expression) {
 			try {
@@ -24,43 +33,49 @@ namespace Nox {
 
 		#region StmtVisitors
 
-		public object VisitBlockStmt(Stmt.Block stmt) {
+		public VoidT VisitBlockStmt(Stmt.Block stmt) {
 			Environment prevEnv = currentEnv;
 			currentEnv = new Environment(currentEnv);
 			foreach (Stmt statement in stmt.statements) {
 				statement.Accept(this);
 			}
 			currentEnv = prevEnv;
-			return null;
+			return VoidT;
 		}
 
-		public object VisitClassStmt(Stmt.Class stmt) {
-			return null;
+		public VoidT VisitClassStmt(Stmt.Class stmt) {
+			return VoidT;
 		}
 
-		public object VisitExpressionStmt(Stmt.Expression stmt) {
+		public VoidT VisitExpressionStmt(Stmt.Expression stmt) {
 			Evaluate(stmt.expression);
-			return null;
+			return VoidT;
 		}
 
-		public object VisitFunctionStmt(Stmt.Function stmt) {
-			return null;
+		public VoidT VisitFunctionStmt(Stmt.Function stmt) {
+			return VoidT;
 		}
 
-		public object VisitIfStmt(Stmt.If stmt) {
-			return null;
+		public VoidT VisitIfStmt(Stmt.If stmt) {
+			object condition = Evaluate(stmt.condition);
+			if (IsTrue(condition)) {
+				stmt.thenBranch.Accept(this);
+			} else {
+				stmt.elseBranch?.Accept(this);
+			}
+			return VoidT;
 		}
 
-		public object VisitPrintStmt(Stmt.Print stmt) {
+		public VoidT VisitPrintStmt(Stmt.Print stmt) {
 			Console.WriteLine(Evaluate(stmt.expression));
-			return null;
+			return VoidT;
 		}
 
-		public object VisitReturnStmt(Stmt.Return stmt) {
-			return null;
+		public VoidT VisitReturnStmt(Stmt.Return stmt) {
+			return VoidT;
 		}
 
-		public object VisitVarStmt(Stmt.Var stmt) {
+		public VoidT VisitVarStmt(Stmt.Var stmt) {
 			if (currentEnv.IsDeclared(stmt.name)) {
 				throw new RuntimeError(
 					stmt.name,
@@ -72,13 +87,15 @@ namespace Nox {
 				val = Evaluate(stmt.initializer);
 			}
 			currentEnv.Define(stmt.name, val);
-			return null;
+			return VoidT;
 		}
 
-		public object VisitWhileStmt(Stmt.While stmt) {
-			return null;
+		public VoidT VisitWhileStmt(Stmt.While stmt) {
+			while (IsTrue(Evaluate(stmt.condition))) {
+				stmt.body.Accept(this);
+			}
+			return VoidT;
 		}
-
 
 		#endregion StmtVisitors
 

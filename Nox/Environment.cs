@@ -67,5 +67,6 @@ namespace Nox {
 				ident,
 				string.Format("Undefined variable {0}", name));
 		}
+
 	}
 }

@@ -16,9 +16,12 @@ var c;
 	print c = 3;
 }
 var d;
-{
-	print "c=" + c;
-	print d = 3;
-	print "d=" + 3;
+if (c == 4) {
+	print "WHAT UP";
+} else {
+	print "WHAT NOT UP";
 }
-print d + c;
+while (c > 0) {
+	print c;
+	c = c - 1;
+}

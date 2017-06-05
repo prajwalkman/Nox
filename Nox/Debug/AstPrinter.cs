@@ -61,7 +61,7 @@ namespace Nox.Debug {
 			foreach (Stmt statement in stmt.statements) {
 				builder.Append(statement.Accept(this));
 			}
-			builder.Append(" )");
+			builder.Append(")");
 			return builder.ToString();
 		}
 
@@ -105,7 +105,7 @@ namespace Nox.Debug {
 		}
 
 		public string VisitWhileStmt(Stmt.While stmt) {
-			throw new NotImplementedException();
+			return Parenthesize("while", stmt.condition, stmt.body);
 		}
 
 		#endregion StmtVisitors

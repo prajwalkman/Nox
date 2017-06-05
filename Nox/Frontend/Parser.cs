@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Nox.Frontend {
 	public class Parser {
@@ -14,13 +15,9 @@ namespace Nox.Frontend {
 			List<Stmt> statements = new List<Stmt>();
 
 			while (!IsEOF()) {
-				try {
-					Stmt newStmt = Declaration();
-					statements.Add(newStmt);
-				} catch (ParserException) {
-					return null;
-				}
+				statements.Add(Declaration());
 			}
+
 			return statements;
 		}
 
@@ -62,17 +59,26 @@ namespace Nox.Frontend {
 
 		// program     → declaration* EOF
 		// declaration → var_decl | statement
-		// statement   → expr_stmt | print_stmt | block
+		// statement   → for_stmt | while_stmt | if_stmt
+		//               | expr_stmt | print_stmt | block
+		// for_stmt    → "for" "(" ( var_decl | expr_stmt | ";" ) expression? ";" expression? ")" statement
+		// while_stmt  → "while" "(" expression ")" statement
+		// if_stmt     → "if" "(" expression ")" statement ( "else" statement )?
 		// block       → "{" declaration* "}"
 		// print_stmt  → "print" expression ";"		
 		// expr_stmt   → expression ";"
 		// var_decl    → "var" IDENT ( "=" expression )? ";"
 
 		private Stmt Declaration() {
-			if (Match(TokenType.VAR)) {
-				return VarDecl();
+			try {
+				if (Match(TokenType.VAR)) {
+					return VarDecl();
+				}
+				return Statement();
+			} catch (ParserException) {
+				Synchronize();
+				return null;
 			}
-			return Statement();
 		}
 
 		private Stmt Statement() {
@@ -82,7 +88,97 @@ namespace Nox.Frontend {
 			if (Match(TokenType.LEFT_BRACE)) {
 				return BlockStmt();
 			}
+			if (Match(TokenType.IF)) {
+				return IfStmt();
+			}
+			if (Match(TokenType.WHILE)) {
+				return WhileStmt();
+			}
+			if (Match(TokenType.FOR)) {
+				return ForStmt();	
+			}
 			return ExprStmt();
+		}
+
+		private Stmt ForStmt() {
+			// We desugar the for loop into a block
+
+			// for (intitializer; condition; action) body
+
+			// {
+			//   intitializer
+			//   while (condition) {
+			//     body
+			//     action
+			//   }
+			// }
+
+			Stmt initializer = null;
+			Expr condition = null;
+			Expr action = null;
+
+			Consume(TokenType.LEFT_PAREN, "Expect '('");
+			if (!Match(TokenType.SEMICOLON)) {
+				if (Match(TokenType.VAR)) {
+					initializer = VarDecl();
+				} else if (!Match(TokenType.SEMICOLON)){
+					initializer = ExprStmt();
+				} else {
+					Consume(TokenType.SEMICOLON, "Expect ';'");
+				}
+			}
+			if (!Match(TokenType.SEMICOLON)) {
+				condition = Expression();
+				Consume(TokenType.SEMICOLON, "Expect ';'");
+			}
+			if (!Match(TokenType.RIGHT_PAREN)) {
+				action = Expression();
+				Consume(TokenType.RIGHT_PAREN, "Expect ')'");
+			}
+
+			Stmt body = Statement();
+			List<Stmt> bodyStmts = new List<Stmt>();
+			if (body is Stmt.Block) {
+				bodyStmts.AddRange(((Stmt.Block)body).statements);
+			} else {
+				bodyStmts.Add(body);
+			}
+			if (action != null) {
+				bodyStmts.Add(new Stmt.Expression(action));
+			}
+			if (condition == null) {
+				condition = new Expr.Literal(true);
+			}
+			
+			Stmt whileStmt = new Stmt.While(condition, new Stmt.Block(bodyStmts));
+
+			List<Stmt> blockStmts = new List<Stmt>();
+			if (initializer != null) {
+				blockStmts.Add(initializer);
+			}
+			blockStmts.Add(whileStmt);
+
+			return new Stmt.Block(blockStmts);
+		}
+
+		private Stmt WhileStmt() {
+			Consume(TokenType.LEFT_PAREN, "Expect '('");
+			Expr condition = Expression();
+			Consume(TokenType.RIGHT_PAREN, "Expect ')'");
+			Stmt body = Statement();
+			return new Stmt.While(condition, body);
+		}
+
+		private Stmt IfStmt() {
+			Consume(TokenType.LEFT_PAREN, "Expect '('");
+			Expr condition = Expression();
+			Consume(TokenType.RIGHT_PAREN, "Expect ')'");
+			Stmt thenBranch = Statement();
+			Stmt elseBranch = null;
+			if (Match(TokenType.ELSE)) {
+				elseBranch = Statement();
+			}
+			return new Stmt.If(condition, thenBranch, elseBranch);
 		}
 
 		private Stmt BlockStmt() {
