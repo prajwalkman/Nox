@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Text;
+using System.Collections.Generic;
+using System.Linq;
 namespace Nox.Debug {
 	public class AstPrinter : Expr.IVisitor<string>, Stmt.IVisitor<string> {
 
@@ -75,8 +77,21 @@ namespace Nox.Debug {
 
 		public string VisitFunctionStmt(Stmt.Function stmt) {
 			StringBuilder builder = new StringBuilder();
+			builder.Append(string.Format("(fun {0}(", stmt.name.lexeme));
 
-			throw new NotImplementedException();
+			foreach (Token param in stmt.parameters) {
+				if (!param.Equals(stmt.parameters[0])) builder.Append(" ");
+				builder.Append(param.lexeme);
+			}
+			builder.Append(") ");
+
+			foreach (Stmt bodyStmt in stmt.body) {
+				builder.Append(bodyStmt.Accept(this));
+			}
+
+			builder.Append(")");
+
+			return builder.ToString();
 		}
 
 		public string VisitIfStmt(Stmt.If stmt) {
@@ -121,7 +136,17 @@ namespace Nox.Debug {
 		private string Parenthesize(string name, params object[] parts) {
 			StringBuilder builder = new StringBuilder();
 
-			builder.Append("(").Append(name);
+			builder.Append("(").Append(name).Append(" ");
+			builder.Append(ParenthesizeInner(parts.ToList()));
+			builder.Append(")");
+
+			return builder.ToString();
+		}
+
+		private string ParenthesizeInner<T>(List<T> parts) {
+			StringBuilder builder = new StringBuilder();
+
+			builder.Append("(");
 			foreach (object part in parts) {
 				builder.Append(" ");
 				if (part is Expr) {
@@ -130,6 +155,8 @@ namespace Nox.Debug {
 					builder.Append(((Stmt)part).Accept(this));
 				} else if (part is Token) {
 					builder.Append(((Token)part).lexeme);
+				} else if (part is List<Expr>) {
+					builder.Append(ParenthesizeInner((List<Expr>)part));					
 				} else {
 					builder.Append(part);
 				}

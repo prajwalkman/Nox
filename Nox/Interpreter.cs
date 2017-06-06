@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Collections.Generic;
 namespace Nox {
 	public struct VoidT {
 		public override string ToString() {
@@ -31,15 +32,19 @@ namespace Nox {
 			}
 		}
 
-		#region StmtVisitors
-
-		public VoidT VisitBlockStmt(Stmt.Block stmt) {
+		public void ExecuteBlock(List<Stmt> statements, Environment environment) {
 			Environment prevEnv = currentEnv;
-			currentEnv = new Environment(currentEnv);
-			foreach (Stmt statement in stmt.statements) {
+			currentEnv = environment;
+			foreach (Stmt statement in statements) {
 				statement.Accept(this);
 			}
 			currentEnv = prevEnv;
+		}
+
+		#region StmtVisitors
+
+		public VoidT VisitBlockStmt(Stmt.Block stmt) {
+			ExecuteBlock(stmt.statements, new Environment(currentEnv));
 			return VoidT;
 		}
 
@@ -53,6 +58,11 @@ namespace Nox {
 		}
 
 		public VoidT VisitFunctionStmt(Stmt.Function stmt) {
+			currentEnv.Define(stmt.name, null);
+			NoxFunction function = new NoxFunction(stmt, currentEnv);
+
+			currentEnv.Assign(stmt.name, function);
+
 			return VoidT;
 		}
 
@@ -72,7 +82,12 @@ namespace Nox {
 		}
 
 		public VoidT VisitReturnStmt(Stmt.Return stmt) {
-			return VoidT;
+			object returnValue = null;
+			if (stmt.value != null) {
+				returnValue = Evaluate(stmt.value);
+			}
+			throw new ReturnException(returnValue);
+			//return VoidT;
 		}
 
 		public VoidT VisitVarStmt(Stmt.Var stmt) {
@@ -159,7 +174,21 @@ namespace Nox {
 		}
 
 		public object VisitCallExpr(Expr.Call expr) {
-			throw new NotImplementedException();
+			object callee = Evaluate(expr.callee);
+
+			if (!(callee is ICallable)) {
+				throw new RuntimeError(expr.paren, "Can only call functions.");
+			}
+
+			List<object> arguments = new List<object>();
+
+			foreach (Expr argument in expr.arguments) {
+				arguments.Add(Evaluate(argument));
+			}
+
+			ICallable function = (ICallable)callee;
+
+			return function.Call(this, arguments);
 		}
 
 		public object VisitGetExpr(Expr.Get expr) {

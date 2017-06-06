@@ -58,21 +58,29 @@ namespace Nox.Frontend {
 		#endregion utils
 
 		// program     → declaration* EOF
-		// declaration → var_decl | statement
+		// declaration → var_decl | fun_decl | statement
 		// statement   → for_stmt | while_stmt | if_stmt
 		//               | expr_stmt | print_stmt | block
+		//               | return_stmt
 		// for_stmt    → "for" "(" ( var_decl | expr_stmt | ";" ) expression? ";" expression? ")" statement
 		// while_stmt  → "while" "(" expression ")" statement
 		// if_stmt     → "if" "(" expression ")" statement ( "else" statement )?
 		// block       → "{" declaration* "}"
 		// print_stmt  → "print" expression ";"		
 		// expr_stmt   → expression ";"
+		// return_stmt → "return" expression? ";"
 		// var_decl    → "var" IDENT ( "=" expression )? ";"
+		// fun_decl    → "fun" function
+		// function    → IDENT "(" parameters? ")" block
+		// parameters  → IDENT ( "," IDENT )*
 
 		private Stmt Declaration() {
 			try {
 				if (Match(TokenType.VAR)) {
 					return VarDecl();
+				}
+				if (Match(TokenType.FUN)) {
+					return FunDecl();
 				}
 				return Statement();
 			} catch (ParserException) {
@@ -97,7 +105,21 @@ namespace Nox.Frontend {
 			if (Match(TokenType.FOR)) {
 				return ForStmt();	
 			}
+			if (Match(TokenType.RETURN)) {
+				return ReturnStmt();
+			}
+
 			return ExprStmt();
+		}
+
+		private Stmt ReturnStmt() {
+			Expr returnVal = null;
+			Token keyword = Previous();
+			if (!Check(TokenType.SEMICOLON)) {
+				returnVal = Expression();
+			}
+			Consume(TokenType.SEMICOLON, "Expect ';' after return");
+			return new Stmt.Return(keyword, returnVal);
 		}
 
 		private Stmt ForStmt() {
@@ -213,16 +235,38 @@ namespace Nox.Frontend {
 			return new Stmt.Var(ident, initializer);
 		}
 
+		private Stmt FunDecl() {
+			Token name = Consume(TokenType.IDENTIFIER, "Expect function name");
+			Consume(TokenType.LEFT_PAREN, "Expect '(' after function name");
+			List<Token> parameters = new List<Token>();
+
+			if (!Check(TokenType.RIGHT_PAREN)) {
+				do {
+					Token param = Consume(TokenType.IDENTIFIER, "Expect parameter name");
+					parameters.Add(param);
+				} while (Match(TokenType.COMMA));
+			}
+
+			Consume(TokenType.RIGHT_PAREN, "Expect ')' after param list");
+			Consume(TokenType.LEFT_BRACE, "Expect '{' after function declaration");
+
+			Stmt body = BlockStmt();
+			List<Stmt> bodyStatements = ((Stmt.Block)body).statements;
+
+			return new Stmt.Function(name, parameters, bodyStatements);
+		}
+
 		// expression → assignment
 		// assignment → IDENT ( "=" assignment )? | equality
 		// equality   → comparison ( ( "!=" | "==" ) comparison )*
 		// comparison → term ( ( ">" | ">=" | "<" | "<=" ) term )*
 		// term       → factor ( ( "-" | "+" ) factor )*
 		// factor     → unary ( ( "/" | "*" ) unary )*
-		// unary      → ( "!" | "-" ) unary
-		//            | primary
+		// unary      → ( "!" | "-" ) unary | call
+		// call       → primary ( "(" arguments ")" | IDENT )*
 		// primary    → NUMBER | STRING | "false" | "true" | "nil"
 		//            | "(" expression ")" | IDENT
+		// arguments  → expression ( "," expression )*
 
 
 		private Expr Expression() {
@@ -302,7 +346,18 @@ namespace Nox.Frontend {
 				return new Expr.Unary(op, right);
 			}
 
-			return Primary();
+			return Call();
+		}
+
+		private Expr Call() {
+			Expr expr = Primary();
+			if (Match(TokenType.LEFT_PAREN)) {
+				List<Expr> args = Arguments();
+				Token paren = Consume(TokenType.RIGHT_PAREN, "Expect ')' after call.");
+				return new Expr.Call(expr, paren, args);
+			}
+
+			return expr;
 		}
 
 		private Expr Primary() {
@@ -324,6 +379,16 @@ namespace Nox.Frontend {
 
 
 			throw Error(Peek(), "Expect expression.");
+		}
+
+		private List<Expr> Arguments() {
+			List<Expr> result = new List<Expr>();
+			if (!Check(TokenType.RIGHT_PAREN)) {
+				do {
+					result.Add(Expression());
+				} while (Match(TokenType.COMMA));
+			}
+			return result;
 		}
 
 		private Token Consume(TokenType type, string errorMsg) {

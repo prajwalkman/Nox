@@ -1,27 +1,13 @@
 ﻿// Nox test file
 
 print "come at me";
-4 + 9;
-print 3 == -3;
-print 3 == 3;
-print 4 + (3 - 5 / 2);
-var a = 7;
-print "a=" + a;
-var b = a + 9;
-print "b=" + b;
-var c;
-{
-	var d = 5;
-	print "d=" + d;
-	print c = 3;
+fun testfun(a, b, c) {
+	print "a=" + a;
+	print "b=" + b;
+	print "c=" + c;
+	return a + b + c;
 }
 var d;
-if (c == 4) {
-	print "WHAT UP";
-} else {
-	print "WHAT NOT UP";
-}
-while (c > 0) {
-	print c;
-	c = c - 1;
-}
+d = testfun(4, 5, 6);
+print "d=" + d;
+print testfun(4, 5, 6);
