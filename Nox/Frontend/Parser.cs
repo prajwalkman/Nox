@@ -27,6 +27,10 @@ namespace Nox.Frontend {
 			return tokens[current];
 		}
 
+		private Token PeekNext() {
+			return tokens[current + 1];
+		}
+
 		private Token Previous() {
 			return tokens[current - 1];
 		}
@@ -58,7 +62,7 @@ namespace Nox.Frontend {
 		#endregion utils
 
 		// program     → declaration* EOF
-		// declaration → var_decl | fun_decl | statement
+		// declaration → inst_decl | var_decl | fun_decl | class_decl | statement
 		// statement   → for_stmt | while_stmt | if_stmt
 		//               | expr_stmt | print_stmt | block
 		//               | return_stmt
@@ -66,11 +70,13 @@ namespace Nox.Frontend {
 		// while_stmt  → "while" "(" expression ")" statement
 		// if_stmt     → "if" "(" expression ")" statement ( "else" statement )?
 		// block       → "{" declaration* "}"
-		// print_stmt  → "print" expression ";"		
+		// print_stmt  → "print" expression ";"
 		// expr_stmt   → expression ";"
 		// return_stmt → "return" expression? ";"
+		// inst_decl   → IDENT IDENT ( "(" parameters? ")" )? ";"
 		// var_decl    → "var" IDENT ( "=" expression )? ";"
 		// fun_decl    → "fun" function
+		// class_decl  → "class" IDENT ( ":" IDENT ( "," IDENT )* )? "{" ( var_decl | function )* "}"
 		// function    → IDENT "(" parameters? ")" block
 		// parameters  → IDENT ( "," IDENT )*
 
@@ -81,6 +87,14 @@ namespace Nox.Frontend {
 				}
 				if (Match(TokenType.FUN)) {
 					return FunDecl();
+				}
+				if (Match(TokenType.CLASS)) {
+					return ClassDecl();
+				}
+				if (Check(TokenType.IDENTIFIER)) {
+					if (PeekNext().type == TokenType.IDENTIFIER) {
+						return InstDecl();
+					}
 				}
 				return Statement();
 			} catch (ParserException) {
@@ -225,6 +239,10 @@ namespace Nox.Frontend {
 			return new Stmt.Expression(expression);
 		}
 
+		private Stmt InstDecl() {
+			throw new NotImplementedException();
+		}
+
 		private Stmt VarDecl() {
 			Token ident = Consume(TokenType.IDENTIFIER, "Expect identifier");
 			Expr initializer = null;
@@ -254,6 +272,32 @@ namespace Nox.Frontend {
 			List<Stmt> bodyStatements = ((Stmt.Block)body).statements;
 
 			return new Stmt.Function(name, parameters, bodyStatements);
+		}
+
+		private Stmt ClassDecl() {
+			Token name = Consume(TokenType.IDENTIFIER, "Expect class name");
+			List<Expr> parents = new List<Expr>();
+			if (Match(TokenType.COLON)) {
+				do {
+					Consume(TokenType.IDENTIFIER, "Expect class name");
+					parents.Add(new Expr.Variable(Previous()));
+				} while (Match(TokenType.COMMA));
+			}
+
+			Consume(TokenType.LEFT_BRACE, "Expect class body");
+			List<Stmt.Function> methods = new List<Stmt.Function>();
+			List<Stmt.Var> fields = new List<Stmt.Var>();
+			while (!Match(TokenType.RIGHT_BRACE)) {
+				if (Match(TokenType.VAR)) {
+					fields.Add((Stmt.Var)VarDecl());
+				} else if (Match(TokenType.FUN)) {
+					methods.Add((Stmt.Function)FunDecl());
+				} else {
+					throw Error(Peek(), "Expect 'var' or 'fun'");
+				}
+			}
+
+			return new Stmt.Class(name, parents, methods, fields);
 		}
 
 		// expression → assignment

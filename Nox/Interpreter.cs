@@ -59,7 +59,7 @@ namespace Nox {
 
 		public VoidT VisitFunctionStmt(Stmt.Function stmt) {
 			currentEnv.Define(stmt.name, null);
-			NoxFunction function = new NoxFunction(stmt, currentEnv);
+			NoxFunction function = new NoxFunction(stmt, currentEnv, false);
 
 			currentEnv.Assign(stmt.name, function);
 

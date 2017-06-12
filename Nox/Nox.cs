@@ -10,7 +10,7 @@ namespace Nox {
 		private static bool hadRuntimeError = false;
 		private static bool replExitRequested = false;
 
-		private static bool astPrinterMode = false;
+		private static bool astPrinterMode = true;
 
 		private static Interpreter interpreter = new Interpreter();
 

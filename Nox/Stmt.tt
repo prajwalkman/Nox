@@ -8,7 +8,7 @@
 string BaseName = "Stmt";
 List<string> StmtGrammar = new List<string>() {
 	"Block      : List<Stmt> statements",
-	"Class      : Token name, List<Function> methods",
+	"Class      : Token name, List<Expr> parents, List<Function> methods, List<Var> fields",
 	"Expression : Expr expression",
 	"Function   : Token name, List<Token> parameters, List<Stmt> body",
 	"If         : Expr condition, Stmt thenBranch, Stmt elseBranch",

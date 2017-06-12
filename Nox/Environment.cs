@@ -13,6 +13,10 @@ namespace Nox {
 			this.parentEnv = enclosing;
 		}
 
+		public void Bind(NoxInstance instance) {
+			values.Add("this", instance);
+		}
+
 		public void Define(Token ident, object val) {
 			string name = ident.lexeme;
 			if (values.ContainsKey(name)) {

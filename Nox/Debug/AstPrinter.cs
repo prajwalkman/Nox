@@ -68,7 +68,18 @@ namespace Nox.Debug {
 		}
 
 		public string VisitClassStmt(Stmt.Class stmt) {
-			throw new NotImplementedException();
+			StringBuilder builder = new StringBuilder();
+			builder.Append("(class ");
+			builder.Append(stmt.name.lexeme);
+			builder.Append(Parenthesize("parents", stmt.parents));
+			foreach (Stmt.Var field in stmt.fields) {
+				builder.Append(" " + field.Accept(this));
+			}
+			foreach (Stmt.Function method in stmt.methods) {
+				builder.Append(" " + method.Accept(this));
+			}
+			builder.Append(")");
+			return builder.ToString();
 		}
 
 		public string VisitExpressionStmt(Stmt.Expression stmt) {

@@ -11,3 +11,10 @@ var d;
 d = testfun(4, 5, 6);
 print "d=" + d;
 print testfun(4, 5, 6);
+
+class TestClass : A, B, C {
+	var tcval1 = 0;
+	fun a(f1, f2, f3) { return f2*f3; }
+}
+
+TestClass tc1(a, 4, 3 + 4);
