@@ -17,4 +17,4 @@ class TestClass : A, B, C {
 	fun a(f1, f2, f3) { return f2*f3; }
 }
 
-TestClass tc1(a, 4, 3 + 4);
+var tc1 = TestClass(a, 4, 3 + 4);

@@ -27,10 +27,6 @@ namespace Nox.Frontend {
 			return tokens[current];
 		}
 
-		private Token PeekNext() {
-			return tokens[current + 1];
-		}
-
 		private Token Previous() {
 			return tokens[current - 1];
 		}
@@ -62,7 +58,7 @@ namespace Nox.Frontend {
 		#endregion utils
 
 		// program     → declaration* EOF
-		// declaration → inst_decl | var_decl | fun_decl | class_decl | statement
+		// declaration → var_decl | fun_decl | class_decl | statement
 		// statement   → for_stmt | while_stmt | if_stmt
 		//               | expr_stmt | print_stmt | block
 		//               | return_stmt
@@ -73,7 +69,6 @@ namespace Nox.Frontend {
 		// print_stmt  → "print" expression ";"
 		// expr_stmt   → expression ";"
 		// return_stmt → "return" expression? ";"
-		// inst_decl   → IDENT IDENT ( "(" parameters? ")" )? ";"
 		// var_decl    → "var" IDENT ( "=" expression )? ";"
 		// fun_decl    → "fun" function
 		// class_decl  → "class" IDENT ( ":" IDENT ( "," IDENT )* )? "{" ( var_decl | function )* "}"
@@ -90,11 +85,6 @@ namespace Nox.Frontend {
 				}
 				if (Match(TokenType.CLASS)) {
 					return ClassDecl();
-				}
-				if (Check(TokenType.IDENTIFIER)) {
-					if (PeekNext().type == TokenType.IDENTIFIER) {
-						return InstDecl();
-					}
 				}
 				return Statement();
 			} catch (ParserException) {
@@ -237,10 +227,6 @@ namespace Nox.Frontend {
 			Expr expression = Expression();
 			Consume(TokenType.SEMICOLON, "Expect ';' after statement");
 			return new Stmt.Expression(expression);
-		}
-
-		private Stmt InstDecl() {
-			throw new NotImplementedException();
 		}
 
 		private Stmt VarDecl() {
